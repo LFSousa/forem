@@ -20,13 +20,29 @@ module CacheBuster
     # https://github.com/fastly/fastly-ruby#efficient-purging
     return unless Rails.env.production?
 
-    HTTParty.post("https://api.fastly.com/purge/https://#{ApplicationConfig['APP_DOMAIN']}#{path}",
-                  headers: { "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"] })
-    HTTParty.post("https://api.fastly.com/purge/https://#{ApplicationConfig['APP_DOMAIN']}#{path}?i=i",
-                  headers: { "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"] })
+    bust_fastly_cache(path) if fastly_enabled?
   rescue URI::InvalidURIError => e
     Rails.logger.error("Trying to bust cache of an invalid uri: #{e}")
     DatadogStatsClient.increment("cache_buster.invalid_uri", tags: ["path:#{path}"])
+  end
+
+  def self.fastly_enabled?
+    ENV["FASTLY_API_KEY"].present? && ENV["FASTLY_SERVICE_ID"].present?
+  end
+
+  def self.bust_fastly_cache(path)
+    HTTParty.post(
+      "https://api.fastly.com/purge/https://#{ApplicationConfig['APP_DOMAIN']}#{path}",
+      headers: {
+        "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"]
+      },
+    )
+    HTTParty.post(
+      "https://api.fastly.com/purge/https://#{ApplicationConfig['APP_DOMAIN']}#{path}?i=i",
+      headers: {
+        "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"]
+      },
+    )
   end
 
   def self.bust_comment(commentable)
