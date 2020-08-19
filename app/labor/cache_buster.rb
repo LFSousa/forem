@@ -1,4 +1,6 @@
 module CacheBuster
+  class Error < RuntimeError; end
+
   TIMEFRAMES = [
     [1.week.ago, "week"],
     [1.month.ago, "month"],
@@ -18,9 +20,15 @@ module CacheBuster
     # fastly.purge(path)
     #
     # https://github.com/fastly/fastly-ruby#efficient-purging
-    return unless Rails.env.production?
+    # return unless Rails.env.production?
 
-    bust_fastly_cache(path) if fastly_enabled?
+    if fastly_enabled?
+      bust_fastly_cache(path)
+    elsif nginx_enabled?
+      bust_nginx_cache(path)
+    else
+      Rails.logger.error("You cannot bust a cache without a caching service set! Please enable a caching service.")
+    end
   rescue URI::InvalidURIError => e
     Rails.logger.error("Trying to bust cache of an invalid uri: #{e}")
     DatadogStatsClient.increment("cache_buster.invalid_uri", tags: ["path:#{path}"])
@@ -28,6 +36,10 @@ module CacheBuster
 
   def self.fastly_enabled?
     ENV["FASTLY_API_KEY"].present? && ENV["FASTLY_SERVICE_ID"].present?
+  end
+
+  def self.nginx_enabled?
+    ENV["OPENRESTY_PROTOCOL"].present? && ENV["OPENRESTY_DOMAIN"].present?
   end
 
   def self.bust_fastly_cache(path)
@@ -220,4 +232,24 @@ module CacheBuster
       bust("?i=i")
     end
   end
+
+  def self.bust_nginx_cache(path)
+    uri = URI.parse("#{ApplicationConfig['OPENRESTY_PROTOCOL']}#{ApplicationConfig['OPENRESTY_DOMAIN']}/#{path}")
+    http = Net::HTTP.new(uri.host, uri.port)
+    response = http.request Net::HTTP::NginxPurge.new(uri.request_uri)
+
+    # Explicitly use `fail` here since we are not catching and re-raising the exception.
+    fail Error, response.body unless response.is_a?(Net::HTTPSuccess) # rubocop:disable Style/SignalException
+
+    response.body
+  end
+end
+
+# Creates our own purge method for an HTTP request,
+# which is used by Nginx to bust a cache.
+# See Net::HTTPGenericRequest for attributes/methods.
+class Net::HTTP::NginxPurge < Net::HTTPRequest # rubocop:disable Style/ClassAndModuleChildren
+  METHOD = "PURGE".freeze
+  REQUEST_HAS_BODY = false
+  RESPONSE_HAS_BODY = true
 end
