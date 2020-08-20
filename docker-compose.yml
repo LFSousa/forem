@@ -5,7 +5,7 @@ services:
     image: forem-rails:latest
     container_name: forem_rails
     ports:
-      - "3000:3000"
+      - "80:3000"
     depends_on:
       - bundle
       - db
@@ -21,7 +21,7 @@ services:
       RACK_TIMEOUT_WAIT_TIMEOUT: 10000
       RACK_TIMEOUT_SERVICE_TIMEOUT: 10000
       STATEMENT_TIMEOUT: 10000
-      APP_DOMAIN: rails
+      APP_DOMAIN: flutter.dev.br
     volumes:
       - .:/opt/apps/forem:delegated
       - ./.gems:/opt/apps/bundle:delegated

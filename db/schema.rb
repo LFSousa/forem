@@ -1237,7 +1237,7 @@ ActiveRecord::Schema.define(version: 2020_08_18_101700) do
     t.datetime "last_article_at", default: "2017-01-01 05:00:00"
     t.datetime "last_comment_at", default: "2017-01-01 05:00:00"
     t.datetime "last_followed_at"
-    t.datetime "last_moderation_notification", default: "2017-01-01 05:00:00"
+    t.datetime "last_moderation_notification", default: "2017-01-01 00:00:00"
     t.datetime "last_notification_activity"
     t.string "last_onboarding_page"
     t.datetime "last_sign_in_at"
@@ -1308,6 +1308,7 @@ ActiveRecord::Schema.define(version: 2020_08_18_101700) do
     t.index ["language_settings"], name: "index_users_on_language_settings", using: :gin
     t.index ["old_old_username"], name: "index_users_on_old_old_username"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["twitch_username"], name: "index_users_on_twitch_username"
     t.index ["twitter_username"], name: "index_users_on_twitter_username", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end
