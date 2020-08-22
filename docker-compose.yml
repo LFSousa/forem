@@ -85,7 +85,7 @@ services:
 #      REDIS_SIDEKIQ_URL: redis://redis:6379
 #      REDIS_URL: redis://redis:6379
 #      REDIS_SESSIONS_URL: redis://redis:6379
-#      DATABASE_URL: postgresql://postgres:iC5aKmdrumrnApvJ@34.95.241.238:5432/forem
+#      DATABASE_URL: ${DATABASE_URL}
 #      ELASTICSEARCH_URL: http://elasticsearch:9200
 #    volumes:
 #      - .:/opt/apps/forem:delegated
