@@ -8,13 +8,13 @@ services:
       - "80:3000"
     depends_on:
       - bundle
-      - db
+#      - db
       - elasticsearch
       - redis
       - yarn
     environment:
       RAILS_ENV: development
-      DATABASE_URL: postgresql://forem:forem@db:5432/PracticalDeveloper_development
+      DATABASE_URL: ${DATABASE_URL}
       ELASTICSEARCH_URL: http://elasticsearch:9200
       REDIS_URL: redis://redis:6379
       REDIS_SESSIONS_URL: redis://redis:6379
@@ -25,7 +25,7 @@ services:
     volumes:
       - .:/opt/apps/forem:delegated
       - ./.gems:/opt/apps/bundle:delegated
-    entrypoint: ["dockerize", "-wait", "tcp://db:5432", "-wait", "http://elasticsearch:9200", "-wait", "tcp://redis:6379", "-wait", "file:///opt/apps/bundle/bundle_finished", "-timeout", "2700s", "./scripts/entrypoint.sh"]
+    entrypoint: ["dockerize", "-wait", "http://elasticsearch:9200", "-wait", "tcp://redis:6379", "-wait", "file:///opt/apps/bundle/bundle_finished", "-timeout", "2700s", "./scripts/entrypoint.sh"]
     command: ["bundle", "exec", "rails","server","-b","0.0.0.0","-p","3000"]
 
   bundle:
@@ -34,7 +34,7 @@ services:
     environment:
       RAILS_ENV: development
       REDIS_SIDEKIQ_URL: redis://redis:6379
-      DATABASE_URL: postgresql://forem:forem@db:5432/PracticalDeveloper_development
+      DATABASE_URL: ${DATABASE_URL}
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - .:/opt/apps/forem:delegated
@@ -48,7 +48,7 @@ services:
     environment:
       RAILS_ENV: development
       REDIS_SIDEKIQ_URL: redis://redis:6379
-      DATABASE_URL: postgresql://forem:forem@db:5432/PracticalDeveloper_development
+      DATABASE_URL: ${DATABASE_URL}
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - .:/opt/apps/forem:delegated
@@ -64,7 +64,7 @@ services:
     environment:
       RAILS_ENV: development
       REDIS_SIDEKIQ_URL: redis://redis:6379
-      DATABASE_URL: postgresql://forem:forem@db:5432/PracticalDeveloper_development
+      DATABASE_URL: ${DATABASE_URL}
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - .:/opt/apps/forem:delegated
@@ -72,26 +72,26 @@ services:
     entrypoint: ["dockerize", "-wait", "file:///opt/apps/forem/node_modules/.bin/webpack-dev-server", "-timeout", "2700s"]
     command: ["./bin/webpack-dev-server"]
 
-  seed:
-    image: forem-rails:latest
-    container_name: forem_seed
-    depends_on:
-      - rails
-      - redis
-      - db
-      - elasticsearch
-    environment:
-      RAILS_ENV: development
-      REDIS_SIDEKIQ_URL: redis://redis:6379
-      REDIS_URL: redis://redis:6379
-      REDIS_SESSIONS_URL: redis://redis:6379
-      DATABASE_URL: postgresql://forem:forem@db:5432/PracticalDeveloper_development
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-    volumes:
-      - .:/opt/apps/forem:delegated
-      - ./.gems:/opt/apps/bundle:delegated
-    entrypoint: ["dockerize", "-wait", "tcp://db:5432", "-wait", "http://elasticsearch:9200", "-wait", "tcp://redis:6379", "-wait", "http://rails:3000", "-timeout", "2700s"]
-    command: ["bundle", "exec", "rake","db:seed"]
+#  seed:
+#    image: forem-rails:latest
+#    container_name: forem_seed
+#    depends_on:
+#      - rails
+#      - redis
+ #     - db
+#      - elasticsearch
+#    environment:
+#      RAILS_ENV: development
+#      REDIS_SIDEKIQ_URL: redis://redis:6379
+#      REDIS_URL: redis://redis:6379
+#      REDIS_SESSIONS_URL: redis://redis:6379
+#      DATABASE_URL: postgresql://postgres:iC5aKmdrumrnApvJ@34.95.241.238:5432/forem
+#      ELASTICSEARCH_URL: http://elasticsearch:9200
+#    volumes:
+#      - .:/opt/apps/forem:delegated
+#      - ./.gems:/opt/apps/bundle:delegated
+#    entrypoint: ["dockerize", "-wait", "http://elasticsearch:9200", "-wait", "tcp://redis:6379", "-wait", "https://flutter.dev.br", "-timeout", "2700s"]
+#    command: ["bundle", "exec", "rake","db:seed"]
 
   sidekiq:
     image: forem-rails:latest
@@ -99,30 +99,30 @@ services:
     depends_on:
       - rails
       - redis
-      - db
+  #    - db
       - elasticsearch
     environment:
       RAILS_ENV: development
       REDIS_SIDEKIQ_URL: redis://redis:6379
-      DATABASE_URL: postgresql://forem:forem@db:5432/PracticalDeveloper_development
+      DATABASE_URL: ${DATABASE_URL}
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - .:/opt/apps/forem:delegated
       - ./.gems:/opt/apps/bundle:delegated
-    entrypoint: ["dockerize", "-wait", "tcp://db:5432", "-wait", "http://elasticsearch:9200", "-wait", "tcp://redis:6379", "-wait", "http://rails:3000", "-timeout", "2700s"]
+    entrypoint: ["dockerize", "-wait", "http://elasticsearch:9200", "-wait", "tcp://redis:6379", "-wait", "https://flutter.dev.br", "-timeout", "2700s"]
     command: ["bundle", "exec", "sidekiq","-c","2"]
 
-  db:
-    image: postgres:11-alpine
-    container_name: forem_postgresql
-    environment:
-      POSTGRES_USER: forem
-      POSTGRES_PASSWORD: forem
-      POSTGRES_DB: PracticalDeveloper_development
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data:delegated
+  #db:
+  #  image: postgres:11-alpine
+  #  container_name: forem_postgresql
+  #  environment:
+  #    POSTGRES_USER: forem
+  #    POSTGRES_PASSWORD: forem
+  #    POSTGRES_DB: PracticalDeveloper_development
+  #  ports:
+  #    - "5432:5432"
+  #  volumes:
+  #    - db_data:/var/lib/postgresql/data:delegated
 
   redis:
     image: "redis"
